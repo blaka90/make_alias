@@ -1,4 +1,4 @@
-#! /user/bin/env python
+#! /usr/bin/env python
 import os
 import subprocess
 import getpass
@@ -19,8 +19,8 @@ def get_script():
 	if args.p != "empty":
 		script_addr = args.p
 	else:
-		print "Please provide full path of script"
-		script_addr = raw_input(">>> ")
+		print("Please provide full path of script")
+		script_addr = input(">>> ")
 	get_name(script_addr)
 
 
@@ -29,8 +29,8 @@ def get_name(script_addr):
 	if args.a != "empty":
 		alias_name = args.a
 	else:
-		print "What would you like to call the alias name?"
-		alias_name = raw_input(">>> ")
+		print("What would you like to call the alias name?")
+		alias_name = input(">>> ")
 	script = [script_addr, alias_name]
 	make_alias(script)
 
@@ -47,11 +47,11 @@ def check_bash():
 		try:
 			p = subprocess.Popen(["touch", ".bash_aliases"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			output = p.communicate()[0]
-			print output
+			print(output)
 			get_script()
 		except Exception as e:
-			print "Failed to make new .bash_profile"
-			print str(e)
+			print("Failed to make new .bash_profile")
+			print(str(e))
 			exit(3)
 	elif "darwin" in os_sys:
 		os.chdir("/Users/" + user + "/")
@@ -63,33 +63,32 @@ def check_bash():
 		try:
 			p = subprocess.Popen(["touch", ".bash_profile"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			output = p.communicate()[0]
-			print output
+			print(output)
 			get_script()
 		except Exception as e:
-			print "Failed to make new .bash_profile"
-			print str(e)
+			print("Failed to make new .bash_profile")
+			print(str(e))
 			exit(3)
 	else:
-		print "Your operating system is not compatible...sorry"
+		print("Your operating system is not compatible...sorry")
 		sys.exit(6)
-
 
 
 # check if the alias already exists
 def check_alias(alias_cmd):
 	if "linux" in os_sys:
-		chk_bash = open("/home/" + user  + "/.bash_aliases", "r")
+		chk_bash = open("/home/" + user + "/.bash_aliases", "r")
 	elif "darwin" in os_sys:
 		chk_bash = open("/Users/" + user + "/.bash_profile", "r")
 	else:
-		print "Your operating system is not compatible...sorry"
+		print("Your operating system is not compatible...sorry")
 		sys.exit(6)
 
 	for line in chk_bash.readlines():
 		if line == alias_cmd:
-			print "#" * 76
-			print " " * 25 + "Alias already exists"
-			print "#" * 76
+			print("#" * 76)
+			print(" " * 25 + "Alias already exists")
+			print("#" * 76)
 			chk_bash.close()
 			exit(0)
 		else:
@@ -113,7 +112,7 @@ def make_bash(alias_command):
 	elif "darwin" in os_sys:
 		bash_path = "/Users/" + user + "/.bash_profile"
 	else:
-		print "Your operating system is not compatible...sorry"
+		print("Your operating system is not compatible...sorry")
 		sys.exit(6)
 
 	bash_pro = open(bash_path, "a")
@@ -121,16 +120,17 @@ def make_bash(alias_command):
 	bash_pro.close()
 	x = subprocess.Popen(["source", bash_path], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	xput = x.communicate()[0]
-	print xput
-	print "#" * 76
-	print " " * 18 + "Your new alias is now ready to use..."
-	print "#" * 76
+	print(xput.decode())
+	print("#" * 76)
+	print(" " * 18 + "Your new alias is now ready to use...")
+	print("#" * 76)
 	exit(0)
 
 
 # just cause
 def main():
 	check_bash()
+
 
 # starts the program
 if __name__ == "__main__":
