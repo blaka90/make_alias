@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 import os
 import subprocess
 import getpass
@@ -101,7 +100,10 @@ def check_alias(alias_cmd):
 def make_alias(path_n_name):
 	user_path = path_n_name[0]
 	aname = path_n_name[1]
-	create_alias = "alias " + aname + '="python ' + user_path + '"\n'
+	if sys.version_info > (3, 0):
+		create_alias = "alias " + aname + '="python3 ' + user_path + '"\n'
+	else:
+		create_alias = "alias " + aname + '="python ' + user_path + '"\n'
 	check_alias(create_alias)
 
 
