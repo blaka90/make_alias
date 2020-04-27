@@ -13,6 +13,59 @@ parser.add_argument("-a", nargs="?", help="specify the alias keyword you want to
 args = parser.parse_args()
 
 
+# check for .bash_aliases or create if none exists
+def check_for_alias_files():
+	has_bash = False
+	has_zsh = False
+	has_zsh_rc = False
+	if "linux" in os_sys:
+		os.chdir("/home/" + user + "/")
+		for pth in os.listdir("/home/" + user + "/"):
+			if pth == ".bash_aliases":
+				has_bash = True
+			if pth == ".zsh_aliases":
+				has_zsh = True
+			if pth == ".zshrc":
+				has_zsh_rc = True
+
+		if not has_bash:
+			try:
+				p = subprocess.Popen(["touch", ".bash_aliases"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+				output = p.communicate()[0]
+				print(output)
+			except Exception as e:
+				print("Failed to make new .bash_aliases file!")
+				print(str(e))
+				exit(3)
+		if not has_zsh:
+			try:
+				p = subprocess.Popen(["touch", ".zsh_aliases"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+				output = p.communicate()[0]
+				print(output)
+			except Exception as e:
+				print("Failed to make new .zsh_aliases file!")
+				print(str(e))
+				exit(3)
+		if not has_zsh_rc:
+			try:
+				p = subprocess.Popen(["touch", ".zshrc"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+				output = p.communicate()[0]
+				print(output)
+				with open(".zshrc", "w+") as f:
+					f.write(". ~/.zsh_aliases")
+					f.close()
+			except Exception as e:
+				print("Failed to make new .zshrc file!")
+				print(str(e))
+				exit(3)
+	else:
+		print("Your operating system is not compatible...sorry")
+		sys.exit(6)
+
+	if has_bash and has_zsh:
+		get_script()
+
+
 # get the path of the script/program the user wants to alias
 def get_script():
 	if args.p != "empty":
@@ -34,68 +87,6 @@ def get_name(script_addr):
 	make_alias(script)
 
 
-# check for .bash_profile or create if none exists
-def check_bash():
-	if "linux" in os_sys:
-		os.chdir("/home/" + user + "/")
-		for pth in os.listdir("/home/" + user + "/"):
-			if pth == ".bash_aliases":
-				get_script()
-			else:
-				continue
-		try:
-			p = subprocess.Popen(["touch", ".bash_aliases"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-			output = p.communicate()[0]
-			print(output)
-			get_script()
-		except Exception as e:
-			print("Failed to make new .bash_profile")
-			print(str(e))
-			exit(3)
-	elif "darwin" in os_sys:
-		os.chdir("/Users/" + user + "/")
-		for pth in os.listdir("/Users/" + user + "/"):
-			if pth == ".bash_profile":
-				get_script()
-			else:
-				continue
-		try:
-			p = subprocess.Popen(["touch", ".bash_profile"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-			output = p.communicate()[0]
-			print(output)
-			get_script()
-		except Exception as e:
-			print("Failed to make new .bash_profile")
-			print(str(e))
-			exit(3)
-	else:
-		print("Your operating system is not compatible...sorry")
-		sys.exit(6)
-
-
-# check if the alias already exists
-def check_alias(alias_cmd):
-	if "linux" in os_sys:
-		chk_bash = open("/home/" + user + "/.bash_aliases", "r")
-	elif "darwin" in os_sys:
-		chk_bash = open("/Users/" + user + "/.bash_profile", "r")
-	else:
-		print("Your operating system is not compatible...sorry")
-		sys.exit(6)
-
-	for line in chk_bash.readlines():
-		if line == alias_cmd:
-			print("#" * 76)
-			print(" " * 25 + "Alias already exists")
-			print("#" * 76)
-			chk_bash.close()
-			exit(0)
-		else:
-			continue
-	chk_bash.close()
-	make_bash(alias_cmd)
-
-
 # make alias name
 def make_alias(path_n_name):
 	user_path = path_n_name[0]
@@ -107,12 +98,48 @@ def make_alias(path_n_name):
 	check_alias(create_alias)
 
 
+# check if the alias already exists
+def check_alias(alias_cmd):
+	in_bash = False
+	in_zsh = False
+	if "linux" in os_sys:
+		chk_bash = open("/home/" + user + "/.bash_aliases", "r")
+		chk_zsh = open("/home/" + user + "/.zsh_aliases", "r")
+	else:
+		print("Your operating system is not compatible...sorry")
+		sys.exit(6)
+
+	for line in chk_bash.readlines():
+		if line == alias_cmd:
+			print("#" * 76)
+			print(" " * 25 + "Alias already exists in .bash_aliases")
+			print("#" * 76)
+			chk_bash.close()
+			in_bash = True
+		else:
+			continue
+
+	for line in chk_zsh.readlines():
+		if line == alias_cmd:
+			print("#" * 76)
+			print(" " * 25 + "Alias already exists in .zsh_aliases")
+			print("#" * 76)
+			chk_zsh.close()
+			in_zsh = True
+		else:
+			continue
+	if in_zsh or in_bash:
+		sys.exit(0)
+	chk_bash.close()
+	chk_zsh.close()
+	make_bash(alias_cmd)
+
+
 # create the alias
 def make_bash(alias_command):
 	if "linux" in os_sys:
 		bash_path = "/home/" + user + "/.bash_aliases"
-	elif "darwin" in os_sys:
-		bash_path = "/Users/" + user + "/.bash_profile"
+		zsh_path = "/home/" + user + "/.zsh_aliases"
 	else:
 		print("Your operating system is not compatible...sorry")
 		sys.exit(6)
@@ -123,6 +150,14 @@ def make_bash(alias_command):
 	x = subprocess.Popen(["source", bash_path], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	xput = x.communicate()[0]
 	print(xput.decode())
+
+	zsh_pro = open(zsh_path, "a")
+	zsh_pro.write(alias_command)
+	zsh_pro.close()
+	x = subprocess.Popen(["source", zsh_path], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	xput = x.communicate()[0]
+	print(xput.decode())
+
 	print("#" * 76)
 	print(" " * 18 + "Your new alias is now ready to use...")
 	print("#" * 76)
@@ -131,7 +166,7 @@ def make_bash(alias_command):
 
 # just cause
 def main():
-	check_bash()
+	check_for_alias_files()
 
 
 # starts the program
